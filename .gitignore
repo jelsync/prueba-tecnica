@@ -11,6 +11,10 @@ override.tf.json
 .terraformrc
 terraform.rc
 
+# Identificadores reales de la cuenta/red de AWS (VPC ID, subnet IDs, etc.).
+# Nunca se versionan: se documentan solo con un *.example junto a cada uno.
+*.auto.tfvars
+
 ### Java / Maven ###
 target/
 *.class

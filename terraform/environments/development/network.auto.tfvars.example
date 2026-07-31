@@ -1,0 +1,22 @@
+# Copia este archivo a "network.auto.tfvars" (sin ".example") y rellena con los
+# IDs reales de tu cuenta de AWS. Terraform carga *.auto.tfvars automáticamente,
+# sin necesidad de -var-file. Este archivo real NUNCA se versiona (ver .gitignore)
+# porque expone identificadores de una VPC/cuenta real.
+#
+# Usa los mismos IDs que environments/deployment/network.auto.tfvars: ambos
+# clústeres comparten la misma VPC para que Jenkins pueda llegar a la API de
+# este clúster.
+
+existing_vpc_id = "vpc-xxxxxxxxxxxxxxxxx"
+
+# Subredes con ruta directa a un Internet Gateway (para el Load Balancer).
+existing_public_subnet_ids = [
+  "subnet-xxxxxxxxxxxxxxxxx",
+  "subnet-xxxxxxxxxxxxxxxxx",
+]
+
+# Subredes privadas donde corren los nodos EKS.
+existing_private_subnet_ids = [
+  "subnet-xxxxxxxxxxxxxxxxx",
+  "subnet-xxxxxxxxxxxxxxxxx",
+]

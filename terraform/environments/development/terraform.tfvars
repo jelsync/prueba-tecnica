@@ -1,10 +1,8 @@
-environment          = "dev"
-cluster_name         = "labeks-development-dev"
-vpc_cidr             = "10.20.0.0/16"
-azs                  = ["us-east-1a", "us-east-1b"]
-public_subnet_cidrs  = ["10.20.0.0/24", "10.20.1.0/24"]
-private_subnet_cidrs = ["10.20.10.0/24", "10.20.11.0/24"]
-single_nat_gateway   = true
+environment  = "dev"
+cluster_name = "labeks-development-dev"
+
+# existing_vpc_id / existing_public_subnet_ids / existing_private_subnet_ids
+# viven en network.auto.tfvars (sin versionar) — ver network.auto.tfvars.example.
 
 node_instance_types = ["t3.medium"]
 node_desired_size   = 2

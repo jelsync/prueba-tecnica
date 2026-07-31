@@ -14,29 +14,21 @@ variable "cluster_name" {
   default = "labeks-development-dev"
 }
 
-variable "vpc_cidr" {
-  type    = string
-  default = "10.20.0.0/16"
+# Sin default a propósito: los IDs reales de la VPC/subredes existentes no se
+# versionan (ver .gitignore) y se pasan vía environments/development/network.auto.tfvars.
+variable "existing_vpc_id" {
+  description = "VPC ya existente en la cuenta donde se despliega este clúster."
+  type        = string
 }
 
-variable "azs" {
-  type    = list(string)
-  default = ["us-east-1a", "us-east-1b"]
+variable "existing_public_subnet_ids" {
+  description = "Subredes existentes con ruta directa a un Internet Gateway (para el Load Balancer)."
+  type        = list(string)
 }
 
-variable "public_subnet_cidrs" {
-  type    = list(string)
-  default = ["10.20.0.0/24", "10.20.1.0/24"]
-}
-
-variable "private_subnet_cidrs" {
-  type    = list(string)
-  default = ["10.20.10.0/24", "10.20.11.0/24"]
-}
-
-variable "single_nat_gateway" {
-  type    = bool
-  default = true
+variable "existing_private_subnet_ids" {
+  description = "Subredes existentes donde corren los nodos EKS."
+  type        = list(string)
 }
 
 variable "kubernetes_version" {

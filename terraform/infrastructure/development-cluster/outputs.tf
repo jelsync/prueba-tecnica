@@ -15,5 +15,10 @@ output "oidc_provider_url" {
 }
 
 output "vpc_id" {
-  value = module.networking.vpc_id
+  value = module.network.vpc_id
+}
+
+output "public_subnet_ids" {
+  description = "Subredes públicas usadas para el Load Balancer (anotarlas en el Service de k8s)."
+  value       = module.network.public_subnet_ids
 }

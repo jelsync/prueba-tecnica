@@ -56,9 +56,10 @@ LabEks/
 - [ ] Extras: CronJob de auditoría de eventos del kubelet, CRD `MicroserviceConfig`
 - [ ] Documentación final: instrucciones paso a paso, validación del secreto, capturas, diagrama
 
-> Nota: por ahora el trabajo se limita a lo que no requiere una cuenta de nube activa
-> (código, no despliegue real). El `terraform apply`, el backend remoto de state y el
-> registry definitivo quedan pendientes de confirmar infraestructura de destino.
+> Nota: los dos clústeres se despliegan sobre AWS EKS reutilizando una VPC ya existente en la
+> cuenta disponible (sin tocar lo que ya hay ahí — ver `terraform/README.md`). El registry es
+> ECR de la misma cuenta. Sigue pendiente el backend remoto de state (S3) y el `apply` real,
+> que se hace manual desde consola/CLI cuando se decida levantar la infraestructura de verdad.
 
 ## Cómo levantar el laboratorio
 

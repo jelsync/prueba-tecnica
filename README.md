@@ -47,8 +47,8 @@ LabEks/
 ## Estado de avance
 
 - [x] Bootstrap del repositorio (`.gitignore`, estructura de carpetas)
-- [ ] Terraform: módulos reutilizables (`networking`, `eks-cluster`)
-- [ ] Terraform: stacks `deployment-cluster` y `development-cluster` (con `dev`/`qa`/`prd`)
+- [x] Terraform: módulos reutilizables (`networking`, `eks-cluster`)
+- [x] Terraform: stacks `deployment-cluster` y `development-cluster` (con `dev`/`qa`/`prd`)
 - [ ] Microservicio Java 21 (endpoints `/env-secret` y `/config-property`, Dockerfile)
 - [ ] Manifiestos Kubernetes del clúster `development` (namespace, RBAC, Deployment, Service)
 - [ ] Jenkins + Vault en el clúster `deployment` (Helm values, política de Vault)
@@ -62,7 +62,21 @@ LabEks/
 
 ## Cómo levantar el laboratorio
 
-Pendiente — se documenta a medida que cada fase de la lista anterior se completa.
+Por ahora solo está listo el código Terraform (sin `apply`, ver [`terraform/README.md`](terraform/README.md)
+para el detalle de módulos y stacks):
+
+```bash
+cd terraform/infrastructure/deployment-cluster
+terraform init
+terraform validate
+
+cd ../development-cluster
+terraform init
+terraform validate
+```
+
+El resto de los pasos (Jenkins, Vault, microservicio, manifiestos K8s) se documentan
+según avanza el checklist de arriba.
 
 ## Cómo validar que el secreto llegó al microservicio
 

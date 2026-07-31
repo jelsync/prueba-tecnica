@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: development
+  labels:
+    app.kubernetes.io/part-of: labeks-devops-2026
+    environment: development

@@ -50,7 +50,7 @@ LabEks/
 - [x] Terraform: módulos reutilizables (`networking`, `eks-cluster`)
 - [x] Terraform: stacks `deployment-cluster` y `development-cluster`
 - [x] Microservicio Java 21 (endpoints `/env-secret` y `/config-property`, Dockerfile)
-- [ ] Manifiestos Kubernetes del clúster `development` (namespace, RBAC, Deployment, Service)
+- [x] Manifiestos Kubernetes del clúster `development` (namespace, RBAC, Deployment, Service)
 - [ ] Jenkins + Vault en el clúster `deployment` (Helm values, política de Vault)
 - [ ] Jenkinsfile (build → push → deploy → rollback)
 - [ ] Extras: CronJob de auditoría de eventos del kubelet, CRD `MicroserviceConfig`

@@ -13,15 +13,11 @@ terraform/
 │   └── development-cluster/    # Stack para el clúster que corre el microservicio
 └── environments/
     ├── deployment/terraform.tfvars
-    └── development/
-        ├── dev/terraform.tfvars
-        ├── qa/terraform.tfvars
-        └── prd/terraform.tfvars
+    └── development/terraform.tfvars
 ```
 
-`deployment-cluster` es un único ambiente (Jenkins/Vault no se replican por env). `development-cluster`
-es el mismo stack aplicado tres veces con distinto `-var-file`, para poder escalar a dev/qa/prd sin
-duplicar código.
+Un `terraform.tfvars` por clúster: el laboratorio pide exactamente dos (deployment y development),
+así que se dejó así de simple en vez de sobre-diseñar una separación dev/qa/prd que no aporta aquí.
 
 ## Uso
 
@@ -34,7 +30,7 @@ terraform plan -var-file=../../environments/deployment/terraform.tfvars
 cd ../development-cluster
 terraform init
 terraform validate
-terraform plan -var-file=../../environments/development/dev/terraform.tfvars
+terraform plan -var-file=../../environments/development/terraform.tfvars
 ```
 
 Por ahora el backend es local (`backend.tf` en cada stack) y no se ha corrido ningún

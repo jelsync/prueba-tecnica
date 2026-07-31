@@ -37,7 +37,7 @@ LabEks/
 ├── terraform/
 │   ├── modules/            # networking y eks-cluster: reutilizables entre ambos clústeres
 │   ├── infrastructure/     # stacks raíz: deployment-cluster y development-cluster
-│   └── environments/       # valores por ambiente (deployment; development/{dev,qa,prd})
+│   └── environments/       # terraform.tfvars de deployment y development
 ├── microservice/           # Spring Boot 3, Java 21
 ├── k8s/                    # manifiestos de ambos clústeres (namespaces, RBAC, Deployment, Vault)
 ├── jenkins/                # Jenkinsfile y política de Vault
@@ -48,7 +48,7 @@ LabEks/
 
 - [x] Bootstrap del repositorio (`.gitignore`, estructura de carpetas)
 - [x] Terraform: módulos reutilizables (`networking`, `eks-cluster`)
-- [x] Terraform: stacks `deployment-cluster` y `development-cluster` (con `dev`/`qa`/`prd`)
+- [x] Terraform: stacks `deployment-cluster` y `development-cluster`
 - [ ] Microservicio Java 21 (endpoints `/env-secret` y `/config-property`, Dockerfile)
 - [ ] Manifiestos Kubernetes del clúster `development` (namespace, RBAC, Deployment, Service)
 - [ ] Jenkins + Vault en el clúster `deployment` (Helm values, política de Vault)

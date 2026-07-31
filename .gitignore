@@ -1,0 +1,36 @@
+### Terraform ###
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+### Java / Maven ###
+target/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/timing.properties
+
+### IDE ###
+.idea/
+*.iml
+*.iws
+.vscode/
+*.swp
+
+### OS ###
+.DS_Store
+Thumbs.db
+
+### Claude Code local settings ###
+.claude/settings.local.json
+
+### Material del enunciado (no es parte de la solución) ###
+Prueba Técnica DevOps 2026.pdf

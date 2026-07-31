@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: microservice
+  namespace: development
+  labels:
+    app: microservice
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: microservice
+  template:
+    metadata:
+      labels:
+        app: microservice
+    spec:
+      serviceAccountName: microservice
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: microservice
+          # La imagen real la fija el Jenkinsfile en el deploy (Fase 6),
+          # apuntando al ECR creado para este laboratorio.
+          image: "<ECR_REPOSITORY_URI>:latest"
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            # Puebla VAULT_SECRET a partir del Secret que sincroniza el CSI
+            # provider / VSO desde Vault (Fase 5). "optional: true" para que
+            # el pod pueda arrancar y probarse antes de que ese Secret exista.
+            - secretRef:
+                name: microservice-vault-secret
+                optional: true
+          env:
+            - name: APP_CONFIG_MESSAGE
+              value: "configuracion-del-deployment-development"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            # Tomcat necesita un /tmp escribible aunque el resto del
+            # filesystem sea de solo lectura (verificado con
+            # `docker run --read-only --tmpfs /tmp`: sin este mount el
+            # contenedor no arranca).
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 15
+      volumes:
+        - name: tmp
+          emptyDir: {}

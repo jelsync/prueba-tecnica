@@ -1,0 +1,27 @@
+# Requiere el AWS Load Balancer Controller instalado en el clúster (no el
+# proveedor in-tree legacy): es el único que soporta fijar subredes por
+# anotación en vez de por tags en la subred. No etiquetamos las subredes
+# públicas existentes a propósito (ver terraform/README.md) para no tocar
+# nada de la VPC compartida, así que la selección explícita es obligatoria.
+apiVersion: v1
+kind: Service
+metadata:
+  name: microservice
+  namespace: development
+  labels:
+    app: microservice
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+    # Reemplazar antes de aplicar con los IDs reales de las subredes públicas
+    # (salida "public_subnet_ids" del stack de Terraform). Nunca commitear los
+    # IDs reales aquí — son de una VPC de una cuenta real, ver terraform/README.md.
+    service.beta.kubernetes.io/aws-load-balancer-subnets: "<PUBLIC_SUBNET_ID_1>,<PUBLIC_SUBNET_ID_2>"
+spec:
+  type: LoadBalancer
+  selector:
+    app: microservice
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

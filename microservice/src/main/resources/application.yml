@@ -1,0 +1,22 @@
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when-authorized
+
+app:
+  vault:
+    # Nombre de la variable de entorno que el pipeline de Jenkins inyecta con
+    # el valor leído de Vault, antes de construir/desplegar la imagen.
+    secret-env-var: ${VAULT_SECRET_ENV_VAR:VAULT_SECRET}
+  config:
+    # Propiedad de configuración simulada (no viene de Vault ni del pipeline).
+    message: ${APP_CONFIG_MESSAGE:configuracion-local-por-defecto}

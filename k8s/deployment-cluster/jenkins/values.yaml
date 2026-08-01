@@ -1,0 +1,42 @@
+# Valores para el chart oficial jenkins/jenkins (5.9.45). Instalación (una
+# vez el clúster deployment exista):
+#   helm repo add jenkins https://charts.jenkins.io
+#   helm install jenkins jenkins/jenkins -n jenkins -f values.yaml
+#
+# rbac.create=true y serviceAccount.create=true (defaults del chart): crea
+# su propio ServiceAccount + Role/RoleBinding *namespaced* (no cluster-wide)
+# para que el plugin de Kubernetes pueda crear/borrar pods de agentes dentro
+# del namespace "jenkins" — no hace falta escribir ese RBAC a mano.
+
+controller:
+  additionalPlugins:
+    # Lee secretos de Vault e inyecta variables de entorno en el pipeline.
+    - hashicorp-vault-plugin
+    # Pasos "docker.build" / "docker.push" en el Jenkinsfile.
+    - docker-workflow
+    # Autenticación contra ECR sin manejar credenciales AWS a mano.
+    - amazon-ecr
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: "1"
+      memory: 2Gi
+
+persistence:
+  enabled: true
+  size: 8Gi
+
+agent:
+  # Agentes efímeros (un pod por build) vía el plugin de Kubernetes — nada
+  # de un agente fijo de larga duración.
+  enabled: true
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi

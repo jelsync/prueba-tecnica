@@ -52,7 +52,7 @@ LabEks/
 - [x] Microservicio Java 21 (endpoints `/env-secret` y `/config-property`, Dockerfile)
 - [x] Manifiestos Kubernetes del clúster `development` (namespace, RBAC, Deployment, Service)
 - [x] Jenkins + Vault en el clúster `deployment` (Helm values, política de Vault)
-- [ ] Jenkinsfile (build → push → deploy → rollback)
+- [x] Jenkinsfile (build → push → deploy → rollback)
 - [ ] Extras: CronJob de auditoría de eventos del kubelet, CRD `MicroserviceConfig`
 - [ ] Documentación final: instrucciones paso a paso, validación del secreto, capturas, diagrama
 

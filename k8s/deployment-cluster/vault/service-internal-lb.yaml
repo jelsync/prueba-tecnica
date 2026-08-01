@@ -1,0 +1,29 @@
+# El chart oficial de Vault (server.service) solo soporta ClusterIP/NodePort,
+# no LoadBalancer — verificado con `helm show values hashicorp/vault`. Como
+# el clúster development es un EKS aparte (aunque comparta la misma VPC), un
+# ClusterIP del clúster deployment no es alcanzable desde ahí: hace falta
+# este Service adicional, propio, que selecciona los mismos pods del
+# StatefulSet que crea el chart (mismas labels, ver values.yaml).
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault-internal-lb
+  namespace: vault
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    # "internal": nunca se expone Vault a internet, solo dentro de la VPC.
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internal"
+    # Reemplazar con los IDs reales de las subredes privadas antes de aplicar
+    # (salida "private_subnet_ids" del stack de Terraform). Nunca commitear
+    # los IDs reales, ver terraform/README.md.
+    service.beta.kubernetes.io/aws-load-balancer-subnets: "<PRIVATE_SUBNET_ID_1>,<PRIVATE_SUBNET_ID_2>"
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/instance: vault
+    component: server
+  ports:
+    - name: api
+      port: 8200
+      targetPort: 8200

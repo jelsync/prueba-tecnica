@@ -1,0 +1,41 @@
+# Valores para el chart oficial hashicorp/vault (0.34.0). Instalación (una
+# vez el clúster deployment exista):
+#   helm repo add hashicorp https://helm.releases.hashicorp.com
+#   helm install vault hashicorp/vault -n vault -f values.yaml
+#
+# Modo standalone (no HA): un solo pod, backend de storage "file" en un PVC.
+# Suficiente para un laboratorio; producción usaría el backend "raft" con HA.
+#
+# server.service del chart solo soporta ClusterIP/NodePort (no LoadBalancer),
+# así que la exposición dentro de la VPC (para que el clúster development
+# alcance a Vault) se hace con un Service aparte —
+# ver service-internal-lb.yaml— que selecciona estos mismos pods.
+
+injector:
+  # No se usa el patrón de sidecar injection: este laboratorio usa el CSI
+  # provider y el Vault Secrets Operator (VSO) para el clúster development,
+  # evaluados por separado en la rúbrica. Dejarlo activo sin usarlo solo
+  # agrega superficie y consumo de recursos.
+  enabled: false
+
+server:
+  ha:
+    enabled: false
+
+  standalone:
+    enabled: true
+    # Config por defecto del chart (ui + listener tcp sin TLS + storage file):
+    # se deja implícita a propósito, no hay necesidad de sobreescribirla para
+    # este laboratorio.
+
+  dataStorage:
+    enabled: true
+    size: 5Gi
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi

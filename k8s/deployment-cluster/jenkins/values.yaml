@@ -14,8 +14,6 @@ controller:
     - hashicorp-vault-plugin
     # Pasos "docker.build" / "docker.push" en el Jenkinsfile.
     - docker-workflow
-    # Autenticación contra ECR sin manejar credenciales AWS a mano.
-    - amazon-ecr
 
   resources:
     requests:

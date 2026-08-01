@@ -50,6 +50,17 @@ variable "node_max_size" {
   default = 3
 }
 
+variable "ecr_repository_name" {
+  type    = string
+  default = "labeks-microservice"
+}
+
+variable "development_cluster_name" {
+  description = "Nombre del clúster development (debe coincidir con cluster_name en environments/development/terraform.tfvars) — solo para construir su ARN, no crea nada ahí."
+  type        = string
+  default     = "labeks-development-dev"
+}
+
 variable "tags" {
   type = map(string)
   default = {

@@ -22,3 +22,14 @@ module "eks" {
   node_max_size            = var.node_max_size
   tags                     = var.tags
 }
+
+module "ecr" {
+  source = "../../modules/ecr"
+
+  repository_name          = var.ecr_repository_name
+  oidc_provider_arn        = module.eks.oidc_provider_arn
+  oidc_provider_url        = module.eks.oidc_provider_url
+  k8s_namespace            = "jenkins"
+  k8s_service_account_name = "jenkins-ecr-push"
+  tags                     = var.tags
+}

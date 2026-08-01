@@ -22,3 +22,17 @@ output "public_subnet_ids" {
   description = "Subredes públicas usadas para el Load Balancer (anotarlas en el Service de k8s)."
   value       = module.network.public_subnet_ids
 }
+
+output "ecr_repository_url" {
+  value = module.ecr.repository_url
+}
+
+output "ecr_push_role_arn" {
+  description = "Anotar en k8s/deployment-cluster/jenkins/build-agent-serviceaccount.yaml (eks.amazonaws.com/role-arn)."
+  value       = module.ecr.push_role_arn
+}
+
+output "jenkins_deploy_role_arn" {
+  description = "Anotar en k8s/deployment-cluster/jenkins/deploy-agent-serviceaccount.yaml (eks.amazonaws.com/role-arn)."
+  value       = aws_iam_role.jenkins_deploy.arn
+}

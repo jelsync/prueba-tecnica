@@ -1,0 +1,63 @@
+# Despliegue del controlador dentro del clúster (opcional: para probarlo
+# basta con correr controller.py localmente contra cualquier kubeconfig,
+# como se hizo en esta sesión contra un clúster kind).
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: microserviceconfig-controller
+  namespace: platform-audit
+---
+# Solo lectura/escritura de status sobre ESTE CRD — nada más.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: microserviceconfig-controller
+rules:
+  - apiGroups: ["labeks.jelsync.hn"]
+    resources: ["microserviceconfigs"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["labeks.jelsync.hn"]
+    resources: ["microserviceconfigs/status"]
+    verbs: ["get", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: microserviceconfig-controller
+subjects:
+  - kind: ServiceAccount
+    name: microserviceconfig-controller
+    namespace: platform-audit
+roleRef:
+  kind: ClusterRole
+  name: microserviceconfig-controller
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: microserviceconfig-controller
+  namespace: platform-audit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: microserviceconfig-controller
+  template:
+    metadata:
+      labels:
+        app: microserviceconfig-controller
+    spec:
+      serviceAccountName: microserviceconfig-controller
+      containers:
+        - name: controller
+          # Build desde k8s/extras/microserviceconfig/controller/ y publicar
+          # en el mismo ECR del laboratorio (u otro registry).
+          image: "<CONTROLLER_IMAGE_URI>:latest"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi

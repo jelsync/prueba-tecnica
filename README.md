@@ -53,7 +53,7 @@ LabEks/
 - [x] Manifiestos Kubernetes del clúster `development` (namespace, RBAC, Deployment, Service)
 - [x] Jenkins + Vault en el clúster `deployment` (Helm values, política de Vault)
 - [x] Jenkinsfile (build → push → deploy → rollback)
-- [ ] Extras: CronJob de auditoría de eventos del kubelet, CRD `MicroserviceConfig`
+- [x] Extras: CronJob de auditoría de eventos del kubelet, CRD `MicroserviceConfig`
 - [ ] Documentación final: instrucciones paso a paso, validación del secreto, capturas, diagrama
 
 > Nota: los dos clústeres se despliegan sobre AWS EKS reutilizando una VPC ya existente en la

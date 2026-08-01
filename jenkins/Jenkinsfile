@@ -113,7 +113,10 @@ pipeline {
                                 - name: kubeconfig
                                   mountPath: /kubeconfig
                             - name: kubectl
-                              image: bitnami/kubectl:1.31
+                              # bitnami/kubectl:1.31 ya no existe (Bitnami
+                              # reorganizó sus tags) — verificado con
+                              # docker pull antes de usar esta alternativa.
+                              image: alpine/k8s:1.31.0
                               command: ["cat"]
                               tty: true
                               volumeMounts:

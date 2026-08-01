@@ -22,6 +22,11 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 .mvn/timing.properties
 
+### Python ###
+venv/
+__pycache__/
+*.pyc
+
 ### IDE ###
 .idea/
 *.iml

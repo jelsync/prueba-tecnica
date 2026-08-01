@@ -51,15 +51,20 @@ LabEks/
 - [x] Terraform: stacks `deployment-cluster` y `development-cluster`
 - [x] Microservicio Java 21 (endpoints `/env-secret` y `/config-property`, Dockerfile)
 - [x] Manifiestos Kubernetes del clúster `development` (namespace, RBAC, Deployment, Service)
-- [ ] Jenkins + Vault en el clúster `deployment` (Helm values, política de Vault)
+- [x] Jenkins + Vault en el clúster `deployment` (Helm values, política de Vault)
 - [ ] Jenkinsfile (build → push → deploy → rollback)
 - [ ] Extras: CronJob de auditoría de eventos del kubelet, CRD `MicroserviceConfig`
 - [ ] Documentación final: instrucciones paso a paso, validación del secreto, capturas, diagrama
 
 > Nota: los dos clústeres se despliegan sobre AWS EKS reutilizando una VPC ya existente en la
 > cuenta disponible (sin tocar lo que ya hay ahí — ver `terraform/README.md`). El registry es
-> ECR de la misma cuenta. Sigue pendiente el backend remoto de state (S3) y el `apply` real,
-> que se hace manual desde consola/CLI cuando se decida levantar la infraestructura de verdad.
+> ECR de la misma cuenta. Vault corre en el clúster `deployment` y el clúster `development` lo
+> alcanza por un Load Balancer interno (nunca expuesto a internet); el secreto llega al
+> microservicio vía Vault Secrets Operator, con el CSI provider documentado como alternativa.
+> Sigue pendiente el backend remoto de state (S3) y el `apply` real, que se hace manual desde
+> consola/CLI cuando se decida levantar la infraestructura de verdad — **nada se ha desplegado
+> todavía**, todo lo de arriba está escrito y validado (`plan`, `helm template`, `kubeconform`,
+> tests), no aplicado contra AWS.
 
 ## Cómo levantar el laboratorio
 

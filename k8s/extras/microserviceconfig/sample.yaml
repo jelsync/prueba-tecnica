@@ -1,0 +1,11 @@
+# Ejemplo de uso: configuración declarativa para el microservicio del
+# laboratorio (ver microservice/), en su namespace real (development).
+apiVersion: labeks.jelsync.hn/v1
+kind: MicroserviceConfig
+metadata:
+  name: microservice
+  namespace: development
+spec:
+  logLevel: info
+  restartPolicy: Always
+  healthCheckPath: /actuator/health

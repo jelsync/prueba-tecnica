@@ -25,6 +25,24 @@ controller:
       cpu: "1"
       memory: 2Gi
 
+  JCasC:
+    configScripts:
+      # Credencial "Vault Kubernetes" declarada como código, no un paso manual
+      # en la UI. El Jenkinsfile la referencia por vaultCredentialId. Campos
+      # (id/description/role/mountPath) verificados contra el código fuente
+      # de VaultKubernetesCredential.java del plugin, no adivinados.
+      vault-credentials: |
+        credentials:
+          system:
+            domainCredentials:
+              - credentials:
+                  - vaultKubernetesCredential:
+                      scope: GLOBAL
+                      id: "vault-k8s-auth"
+                      description: "Kubernetes auth contra Vault (mount kubernetes-jenkins)"
+                      mountPath: "kubernetes-jenkins"
+                      role: "jenkins-microservice"
+
 persistence:
   enabled: true
   size: 8Gi

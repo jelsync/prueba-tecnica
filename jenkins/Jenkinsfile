@@ -1,0 +1,157 @@
+// Pipeline del laboratorio: lee el secreto de Vault, construye y publica la
+// imagen del microservicio en ECR, y la despliega en el clúster development
+// — con rollback automático si el despliegue falla.
+//
+// Placeholders a resolver una vez el `terraform apply` real esté hecho:
+//   ECR_REPOSITORY           -> salida "ecr_repository_url" de deployment-cluster
+//   DEVELOPMENT_CLUSTER_NAME -> debe coincidir con "cluster_name" en
+//                                environments/development/terraform.tfvars
+//
+// Credencial "vault-k8s-auth": declarada como código en
+// k8s/deployment-cluster/jenkins/values.yaml (JCasC), no un paso manual.
+// ServiceAccounts jenkins-ecr-push / jenkins-deploy: IRSA, definidas en
+// k8s/deployment-cluster/jenkins/*-agent-serviceaccount.yaml.
+pipeline {
+    agent none
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+    }
+
+    environment {
+        ECR_REPOSITORY           = "<ECR_REPOSITORY_URI>"
+        AWS_REGION               = "us-east-1"
+        DEVELOPMENT_CLUSTER_NAME = "labeks-development-dev"
+        IMAGE_TAG                = "${env.BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Leer secreto de Vault, build y push a ECR') {
+            agent {
+                kubernetes {
+                    yaml '''
+                        apiVersion: v1
+                        kind: Pod
+                        spec:
+                          serviceAccountName: jenkins-ecr-push
+                          containers:
+                            - name: docker
+                              image: docker:24-cli
+                              command: ["cat"]
+                              tty: true
+                              volumeMounts:
+                                - name: docker-sock
+                                  mountPath: /var/run/docker.sock
+                            - name: awscli
+                              image: amazon/aws-cli:2.17.62
+                              command: ["cat"]
+                              tty: true
+                          volumes:
+                            - name: docker-sock
+                              hostPath:
+                                path: /var/run/docker.sock
+                    '''
+                }
+            }
+            steps {
+                checkout scm
+
+                script {
+                    def vaultSecrets = [
+                        [path: 'secret/microservice', engineVersion: 2, secretValues: [
+                            [envVar: 'VAULT_SECRET', vaultKey: 'value']
+                        ]]
+                    ]
+                    def vaultConfig = [
+                        vaultUrl         : 'http://vault.vault.svc.cluster.local:8200',
+                        vaultCredentialId: 'vault-k8s-auth',
+                        engineVersion    : 2
+                    ]
+
+                    withVault([configuration: vaultConfig, vaultSecrets: vaultSecrets]) {
+                        // El secreto ya está disponible como VAULT_SECRET *antes* de
+                        // este paso, tal como pide el enunciado. No se hornea en la
+                        // imagen — el pod en development lo recibe en runtime vía
+                        // VSO (ver k8s/development/vault/); esto solo demuestra que
+                        // Jenkins lo leyó de forma segura antes de construir.
+                        sh 'echo "Secreto leido de Vault, disponible como VAULT_SECRET antes del build"'
+                    }
+
+                    container('docker') {
+                        sh "docker build -t ${ECR_REPOSITORY}:${IMAGE_TAG} microservice/"
+                    }
+
+                    container('awscli') {
+                        sh "aws ecr get-login-password --region ${AWS_REGION} > /tmp/ecr-token"
+                    }
+
+                    container('docker') {
+                        sh """
+                            cat /tmp/ecr-token | docker login --username AWS --password-stdin ${ECR_REPOSITORY}
+                            docker push ${ECR_REPOSITORY}:${IMAGE_TAG}
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Deploy a development (con rollback automático)') {
+            agent {
+                kubernetes {
+                    yaml '''
+                        apiVersion: v1
+                        kind: Pod
+                        spec:
+                          serviceAccountName: jenkins-deploy
+                          containers:
+                            - name: awscli
+                              image: amazon/aws-cli:2.17.62
+                              command: ["cat"]
+                              tty: true
+                              volumeMounts:
+                                - name: kubeconfig
+                                  mountPath: /kubeconfig
+                            - name: kubectl
+                              image: bitnami/kubectl:1.31
+                              command: ["cat"]
+                              tty: true
+                              volumeMounts:
+                                - name: kubeconfig
+                                  mountPath: /kubeconfig
+                          volumes:
+                            - name: kubeconfig
+                              emptyDir: {}
+                    '''
+                }
+            }
+            steps {
+                container('awscli') {
+                    sh "aws eks update-kubeconfig --name ${DEVELOPMENT_CLUSTER_NAME} --region ${AWS_REGION} --kubeconfig /kubeconfig/config"
+                }
+
+                script {
+                    try {
+                        container('kubectl') {
+                            sh "KUBECONFIG=/kubeconfig/config kubectl -n development set image deployment/microservice microservice=${ECR_REPOSITORY}:${IMAGE_TAG}"
+                            sh "KUBECONFIG=/kubeconfig/config kubectl -n development rollout status deployment/microservice --timeout=180s"
+                        }
+                    } catch (err) {
+                        echo "Deploy fallo (${err}), haciendo rollback al release anterior"
+                        container('kubectl') {
+                            sh "KUBECONFIG=/kubeconfig/config kubectl -n development rollout undo deployment/microservice"
+                            sh "KUBECONFIG=/kubeconfig/config kubectl -n development rollout status deployment/microservice --timeout=180s"
+                        }
+                        error "Deploy fallido: se hizo rollback automatico a la version anterior. Revisar logs arriba."
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Deploy de ${ECR_REPOSITORY}:${IMAGE_TAG} exitoso en development."
+        }
+    }
+}

@@ -18,6 +18,13 @@ spec:
       serviceAccountName: microservice
       securityContext:
         runAsNonRoot: true
+        # UID numerico que coincide con el "USER 10001" del Dockerfile. Sin un
+        # runAsUser numerico, Kubernetes no puede verificar que el usuario de
+        # la imagen (nombre "app") sea no-root y rechaza el contenedor con
+        # "cannot verify user is non-root" (confirmado en vivo).
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
       containers:
         - name: microservice
           # La imagen real la fija el Jenkinsfile en el deploy (Fase 6),

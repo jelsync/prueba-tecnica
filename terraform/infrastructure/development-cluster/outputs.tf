@@ -22,3 +22,8 @@ output "public_subnet_ids" {
   description = "Subredes públicas usadas para el Load Balancer (anotarlas en el Service de k8s)."
   value       = module.network.public_subnet_ids
 }
+
+output "alb_controller_role_arn" {
+  description = "Anotar en k8s/development/aws-load-balancer-controller/values.yaml (serviceAccount.annotations)."
+  value       = module.alb_controller_irsa.role_arn
+}

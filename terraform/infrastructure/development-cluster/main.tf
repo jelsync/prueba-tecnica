@@ -22,3 +22,11 @@ module "eks" {
   node_max_size            = var.node_max_size
   tags                     = merge(var.tags, { Environment = var.environment })
 }
+
+module "alb_controller_irsa" {
+  source = "../../modules/aws-load-balancer-controller-irsa"
+
+  oidc_provider_arn = module.eks.oidc_provider_arn
+  oidc_provider_url = module.eks.oidc_provider_url
+  tags              = merge(var.tags, { Environment = var.environment })
+}

@@ -34,8 +34,15 @@ resource "aws_eks_cluster" "this" {
   # Sin esto, el default es CONFIG_MAP (legacy) y los EKS Access Entries
   # (los que usa development-cluster para el rol de deploy de Jenkins) no se
   # pueden crear -- encontrado en vivo al aplicar development-cluster.
+  #
+  # bootstrap_cluster_creator_admin_permissions se fija explícitamente en
+  # true porque así quedó ya en el clúster existente (default de AWS al
+  # crearlo) -- omitirlo hace que Terraform lo interprete como "cambiar a
+  # null", y ese campo específico SÍ fuerza a reemplazar el clúster entero
+  # (visto en un "terraform plan" real antes de aplicar, por suerte).
   access_config {
-    authentication_mode = "API_AND_CONFIG_MAP"
+    authentication_mode                         = "API_AND_CONFIG_MAP"
+    bootstrap_cluster_creator_admin_permissions = true
   }
 
   tags = var.tags

@@ -38,3 +38,35 @@ resource "aws_iam_role_policy_attachment" "ebs_csi_driver" {
   role       = aws_iam_role.ebs_csi_driver.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
 }
+
+# AmazonEBSCSIDriverPolicy NO incluye ningún permiso de kms:* (confirmado
+# leyendo el policy document oficial de AWS). Como el cifrado de EBS por
+# defecto está activo en la cuenta, CreateVolume "acepta" la solicitud pero
+# nunca termina de materializar el volumen sin poder usar la key -- por eso
+# DescribeVolumes nunca lo encontraba (diagnosticado en vivo, con varios
+# intentos y volúmenes distintos cada vez, todos con el mismo resultado).
+# data source en vez de un ARN a mano: no hace falta versionar el key id
+# real de la cuenta.
+data "aws_ebs_default_kms_key" "current" {}
+
+data "aws_iam_policy_document" "ebs_csi_kms" {
+  statement {
+    actions = [
+      "kms:CreateGrant",
+      "kms:ListGrants",
+      "kms:RevokeGrant",
+      "kms:Decrypt",
+      "kms:Encrypt",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey",
+      "kms:ReEncrypt*",
+    ]
+    resources = [data.aws_ebs_default_kms_key.current.key_arn]
+  }
+}
+
+resource "aws_iam_role_policy" "ebs_csi_driver_kms" {
+  name   = "ebs-csi-driver-kms"
+  role   = aws_iam_role.ebs_csi_driver.id
+  policy = data.aws_iam_policy_document.ebs_csi_kms.json
+}

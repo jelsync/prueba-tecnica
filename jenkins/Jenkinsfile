@@ -19,8 +19,15 @@ pipeline {
         disableConcurrentBuilds()
     }
 
+    // ECR_REPOSITORY como parametro (no hardcodeado): la URI real incluye el
+    // ID de la cuenta de AWS, que no se puede commitear (ver terraform/README.md).
+    // Se sobrescribe con "Build with Parameters" al lanzar el build, nunca en git.
+    parameters {
+        string(name: 'ECR_REPOSITORY', defaultValue: '<ECR_REPOSITORY_URI>', description: 'Salida ecr_repository_url del stack de Terraform de deployment-cluster')
+    }
+
     environment {
-        ECR_REPOSITORY           = "<ECR_REPOSITORY_URI>"
+        ECR_REPOSITORY           = "${params.ECR_REPOSITORY}"
         AWS_REGION               = "us-east-1"
         DEVELOPMENT_CLUSTER_NAME = "labeks-development-dev"
         IMAGE_TAG                = "${env.BUILD_NUMBER}"

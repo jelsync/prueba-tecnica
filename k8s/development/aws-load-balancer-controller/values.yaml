@@ -11,8 +11,15 @@
 
 clusterName: labeks-development-dev
 region: us-east-1
-# vpcId: se detecta automático vía IMDS del nodo — no se fija a mano para no
-# versionar el VPC ID real de la cuenta compartida (ver terraform/README.md).
+# vpcId: sin fijar aquí a propósito, para no versionar el VPC ID real de la
+# cuenta compartida. Pasarlo con --set vpcId=... al instalar/actualizar.
+#
+# Probado en vivo: la auto-detección vía IMDS del nodo FALLA dentro del
+# pod ("context deadline exceeded" pidiendo la metadata) — muy probablemente
+# el hop limit de IMDS del launch template (por defecto 1, un contenedor
+# necesita 2 saltos). No se ajustó el launch template para no forzar un
+# reemplazo de nodos ya corriendo; el --set vpcId de abajo evita el problema
+# sin tocar nada más.
 
 serviceAccount:
   create: true
@@ -21,6 +28,10 @@ serviceAccount:
     # Reemplazar con la salida "alb_controller_role_arn" del stack de
     # Terraform (development-cluster) una vez aplicado.
     eks.amazonaws.com/role-arn: "<ALB_CONTROLLER_ROLE_ARN>"
+
+# helm install/upgrade ... -f values.yaml \
+#   --set vpcId=<vpc_id real> \
+#   --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=<alb_controller_role_arn real>
 
 resources:
   requests:

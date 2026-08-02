@@ -200,6 +200,17 @@ resource "aws_launch_template" "node" {
     tags          = var.tags
   }
 
+  # hop_limit=2: sin esto (default 1), procesos dentro de un pod no llegan
+  # al IMDS del nodo -- confirmado en vivo con el AWS Load Balancer
+  # Controller ("context deadline exceeded" pidiendo la metadata). No se
+  # reemplazaron los nodos ya corrindo para aplicar esto (se evitó el
+  # problema con --set vpcId= en el chart en su lugar); nodos nuevos que se
+  # creen de aquí en adelante ya salen bien.
+  metadata_options {
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 2
+  }
+
   tags = var.tags
 }
 

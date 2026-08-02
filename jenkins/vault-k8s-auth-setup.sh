@@ -37,15 +37,19 @@ echo "==> Escribiendo la política de mínimo privilegio (vault-policy.hcl)"
 vault policy write jenkins-microservice ./vault-policy.hcl
 
 echo "==> Creando el role que liga la ServiceAccount de Jenkins a esa política"
-# bound_service_account_names=jenkins-ecr-push (no una ServiceAccount aparte
-# solo para Vault): el pod que corre "withVault(...)" en el Jenkinsfile es el
-# mismo que necesita IRSA para hacer push a ECR, y un pod solo puede tener una
-# serviceAccountName -- Vault solo usa el JWT para TokenReview, no le hace
-# falta ningun permiso de RBAC de k8s, asi que reutilizar esta identidad no
-# amplia el acceso de nadie. (Confirmado en vivo: con una ServiceAccount
-# distinta el login fallaba con "service account name not authorized".)
+# bound_service_account_names=jenkins (la ServiceAccount del CONTROLLER, la
+# que crea el chart jenkins/jenkins por default) -- no la del pod agente que
+# corre el stage. El plugin hashicorp-vault-plugin resuelve el login contra
+# Vault en el JVM del controller (las credenciales de Jenkins se resuelven
+# ahi), asi que el JWT que Vault valida es el del pod "jenkins-0", sin
+# importar bajo que ServiceAccount corra el agente que invoca "withVault(...)".
+# Confirmado en vivo: con bound_service_account_names=jenkins-ecr-push (la
+# del agente) el login fallaba con "service account name not authorized";
+# probando el mismo login a mano con el token de jenkins-0 daba el mismo
+# error, y con el token del agente si pasaba -- ambos contra el role viejo,
+# lo que aislo que el login real ocurre desde el controller.
 vault write auth/kubernetes-jenkins/role/jenkins-microservice \
-  bound_service_account_names=jenkins-ecr-push \
+  bound_service_account_names=jenkins \
   bound_service_account_namespaces=jenkins \
   policies=jenkins-microservice \
   ttl=15m

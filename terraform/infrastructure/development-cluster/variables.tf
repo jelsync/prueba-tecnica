@@ -14,6 +14,12 @@ variable "cluster_name" {
   default = "labeks-development-dev"
 }
 
+variable "deployment_cluster_name" {
+  description = "Nombre del clúster deployment (debe coincidir con cluster_name en environments/deployment/terraform.tfvars) — solo para ubicar su security group, no crea nada ahí."
+  type        = string
+  default     = "labeks-deployment"
+}
+
 # Sin default a propósito: los IDs reales de la VPC/subredes existentes no se
 # versionan (ver .gitignore) y se pasan vía environments/development/network.auto.tfvars.
 variable "existing_vpc_id" {

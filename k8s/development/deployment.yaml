@@ -33,14 +33,20 @@ spec:
           ports:
             - name: http
               containerPort: 8080
-          envFrom:
-            # Puebla VAULT_SECRET a partir del Secret que sincroniza el CSI
-            # provider / VSO desde Vault (Fase 5). "optional: true" para que
-            # el pod pueda arrancar y probarse antes de que ese Secret exista.
-            - secretRef:
-                name: microservice-vault-secret
-                optional: true
           env:
+            # Mapea explicitamente la clave "value" del Secret que sincroniza
+            # VSO (secret/microservice en Vault, clave "value") a la env var
+            # VAULT_SECRET que lee la app. NO se usa envFrom: ese crea env vars
+            # con el NOMBRE de cada clave del Secret ("value", "_raw"), no
+            # "VAULT_SECRET" -> la app veia el secreto como no inyectado
+            # (confirmado en vivo). "optional: true" para que el pod arranque
+            # aunque el Secret aun no exista.
+            - name: VAULT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: microservice-vault-secret
+                  key: value
+                  optional: true
             - name: APP_CONFIG_MESSAGE
               value: "configuracion-del-deployment-development"
           securityContext:

@@ -37,8 +37,15 @@ echo "==> Escribiendo la política de mínimo privilegio (vault-policy.hcl)"
 vault policy write jenkins-microservice ./vault-policy.hcl
 
 echo "==> Creando el role que liga la ServiceAccount de Jenkins a esa política"
+# bound_service_account_names=jenkins-ecr-push (no una ServiceAccount aparte
+# solo para Vault): el pod que corre "withVault(...)" en el Jenkinsfile es el
+# mismo que necesita IRSA para hacer push a ECR, y un pod solo puede tener una
+# serviceAccountName -- Vault solo usa el JWT para TokenReview, no le hace
+# falta ningun permiso de RBAC de k8s, asi que reutilizar esta identidad no
+# amplia el acceso de nadie. (Confirmado en vivo: con una ServiceAccount
+# distinta el login fallaba con "service account name not authorized".)
 vault write auth/kubernetes-jenkins/role/jenkins-microservice \
-  bound_service_account_names=jenkins-vault-auth \
+  bound_service_account_names=jenkins-ecr-push \
   bound_service_account_namespaces=jenkins \
   policies=jenkins-microservice \
   ttl=15m

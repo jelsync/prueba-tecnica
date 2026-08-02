@@ -10,7 +10,13 @@ metadata:
   name: vault-internal-lb
   namespace: vault
   annotations:
-    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    # "external" (no "nlb" — ese valor no lo reconoce el AWS Load Balancer
+    # Controller moderno, solo "nlb-ip"/"external"; con "nlb" el Service cae
+    # al proveedor in-tree legacy, que ignora scheme/subnets y expone la LB
+    # con sus propios defaults — así terminó esta LB pública por error,
+    # confirmado en vivo con "aws elbv2 describe-load-balancers").
+    service.beta.kubernetes.io/aws-load-balancer-type: "external"
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
     # "internal": nunca se expone Vault a internet, solo dentro de la VPC.
     service.beta.kubernetes.io/aws-load-balancer-scheme: "internal"
     # Reemplazar con los IDs reales de las subredes privadas antes de aplicar

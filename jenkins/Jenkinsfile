@@ -37,27 +37,35 @@ pipeline {
         stage('Leer secreto de Vault, build y push a ECR') {
             agent {
                 kubernetes {
+                    // Sin contenedor "docker" ni hostPath a /var/run/docker.sock: los
+                    // nodos de este EKS corren containerd, no dockerd (confirmado en
+                    // vivo con "kubectl get nodes ... containerRuntimeVersion" -- desde
+                    // EKS 1.24 no hay daemon Docker en el host, montar ese socket nunca
+                    // funciona). Kaniko construye y publica la imagen sin necesitar
+                    // ningun daemon ni privilegios elevados en el pod.
                     yaml '''
                         apiVersion: v1
                         kind: Pod
                         spec:
                           serviceAccountName: jenkins-ecr-push
                           containers:
-                            - name: docker
-                              image: docker:24-cli
-                              command: ["cat"]
+                            - name: kaniko
+                              image: gcr.io/kaniko-project/executor:debug
+                              command: ["/busybox/cat"]
                               tty: true
                               volumeMounts:
-                                - name: docker-sock
-                                  mountPath: /var/run/docker.sock
+                                - name: docker-config
+                                  mountPath: /kaniko/.docker
                             - name: awscli
                               image: amazon/aws-cli:2.17.62
                               command: ["cat"]
                               tty: true
+                              volumeMounts:
+                                - name: docker-config
+                                  mountPath: /kaniko/.docker
                           volumes:
-                            - name: docker-sock
-                              hostPath:
-                                path: /var/run/docker.sock
+                            - name: docker-config
+                              emptyDir: {}
                     '''
                 }
             }
@@ -85,19 +93,21 @@ pipeline {
                         sh 'echo "Secreto leido de Vault, disponible como VAULT_SECRET antes del build"'
                     }
 
-                    container('docker') {
-                        sh "docker build -t ${ECR_REPOSITORY}:${IMAGE_TAG} microservice/"
-                    }
-
+                    // aws ecr get-login-password + un config.json a mano (no "docker
+                    // login": no hay contenedor docker) -- Kaniko lee credenciales de
+                    // registry del mismo formato ~/.docker/config.json que docker.
                     container('awscli') {
-                        sh "aws ecr get-login-password --region ${AWS_REGION} > /tmp/ecr-token"
+                        sh '''
+                            set -euo pipefail
+                            REGISTRY=$(echo "$ECR_REPOSITORY" | cut -d/ -f1)
+                            TOKEN=$(aws ecr get-login-password --region "$AWS_REGION")
+                            AUTH=$(printf "AWS:%s" "$TOKEN" | base64 -w0)
+                            printf '{"auths":{"%s":{"auth":"%s"}}}' "$REGISTRY" "$AUTH" > /kaniko/.docker/config.json
+                        '''
                     }
 
-                    container('docker') {
-                        sh """
-                            cat /tmp/ecr-token | docker login --username AWS --password-stdin ${ECR_REPOSITORY}
-                            docker push ${ECR_REPOSITORY}:${IMAGE_TAG}
-                        """
+                    container('kaniko') {
+                        sh '/kaniko/executor --context=dir://$(pwd)/microservice --dockerfile=Dockerfile --destination=${ECR_REPOSITORY}:${IMAGE_TAG} --cache=false'
                     }
                 }
             }

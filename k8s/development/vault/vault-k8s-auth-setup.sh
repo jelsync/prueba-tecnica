@@ -20,9 +20,18 @@ echo "==> Configurando el auth method contra la API del clúster development"
 KUBE_HOST=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
 KUBE_CA=$(kubectl config view --minify --flatten -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' | base64 -d)
 
+# Vault corre en el clúster deployment; para validar tokens de development
+# necesita un reviewer JWT que sea válido EN development (ServiceAccount con
+# system:auth-delegator, ver token-reviewer.yaml) y desactivar el uso de su
+# token/CA local. Sin esto la TokenReview cross-cluster falla con "403
+# permission denied" (confirmado en vivo con el login de VSO).
+REVIEWER_JWT=$(kubectl -n development get secret vault-token-reviewer-token -o jsonpath='{.data.token}' | base64 -d)
+
 vault write auth/kubernetes-development/config \
   kubernetes_host="${KUBE_HOST}" \
-  kubernetes_ca_cert="${KUBE_CA}"
+  kubernetes_ca_cert="${KUBE_CA}" \
+  token_reviewer_jwt="${REVIEWER_JWT}" \
+  disable_local_ca_jwt=true
 
 echo "==> Reutilizando la misma política de solo lectura que usa Jenkins"
 vault policy write microservice-read ../../../jenkins/vault-policy.hcl

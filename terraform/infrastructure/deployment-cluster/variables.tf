@@ -25,6 +25,11 @@ variable "existing_private_subnet_ids" {
   type        = list(string)
 }
 
+variable "shared_vpc_endpoints_sg_id" {
+  description = "Security group de los VPC endpoints existentes (SSM/ECR/STS/...) al que hay que darle acceso desde los nodos EKS. Ver network.auto.tfvars."
+  type        = string
+}
+
 variable "kubernetes_version" {
   type    = string
   default = "1.31"

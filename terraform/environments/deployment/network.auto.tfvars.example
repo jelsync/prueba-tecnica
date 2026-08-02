@@ -16,3 +16,7 @@ existing_private_subnet_ids = [
   "subnet-xxxxxxxxxxxxxxxxx",
   "subnet-xxxxxxxxxxxxxxxxx",
 ]
+
+# Security group de los VPC endpoints existentes (SSM/ECR/STS/logs/...) al
+# que hay que darle acceso HTTPS desde el security group del clúster EKS.
+shared_vpc_endpoints_sg_id = "sg-xxxxxxxxxxxxxxxxx"

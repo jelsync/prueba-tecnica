@@ -27,3 +27,8 @@ output "node_ebs_kms_key_arn" {
   description = "Key propia usada para cifrar los volúmenes EBS de los nodos (no la default de la cuenta)."
   value       = aws_kms_key.node_ebs.arn
 }
+
+output "cluster_security_group_id" {
+  description = "Security group que EKS crea automáticamente para el clúster/nodos (no lo creamos nosotros, lo expone el propio recurso)."
+  value       = aws_eks_cluster.this.vpc_config[0].cluster_security_group_id
+}

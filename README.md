@@ -229,11 +229,15 @@ kubectl --context development apply -f k8s/development/service.yaml
 # Vault Secrets Operator
 helm install vault-secrets-operator hashicorp/vault-secrets-operator \
   -n vault-secrets-operator-system --create-namespace
-kubectl --context development apply -f k8s/development/vault/token-reviewer.yaml
-kubectl --context development apply -f k8s/development/vault/connection.yaml   # address = NLB interno de Vault
-kubectl --context development apply -f k8s/development/vault/auth.yaml
-kubectl --context development apply -f k8s/development/vault/static-secret.yaml
+
+# Auth cross-cluster de VSO + CRDs, en un solo paso robusto (solo kubectl).
+# Automatiza los dos pasos fragiles: cargar el reviewer JWT en Vault y poner
+# el DNS actual del NLB interno de Vault en connection.yaml.
+export VAULT_ROOT_TOKEN=<root-token-de-vault>   # se usa, no se imprime
+bash k8s/development/vault/setup-cross-cluster-auth.sh
 ```
+
+> **Por qué un script y no `kubectl apply` directo:** el DNS del NLB interno de Vault cambia en cada recreación (hay que ponerlo en `connection.yaml`), y cargar el `token_reviewer_jwt` dentro del pod de Vault es delicado (`kubectl exec -i` no entrega la última línea si no termina en salto). El script [`setup-cross-cluster-auth.sh`](k8s/development/vault/setup-cross-cluster-auth.sh) resuelve ambos de forma determinista. Es idempotente: se puede re-ejecutar sin problema.
 
 ### 6. Ejecutar el pipeline
 

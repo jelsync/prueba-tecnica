@@ -1,3 +1,9 @@
+variable "role_name" {
+  description = "Nombre del rol IAM. Debe ser distinto por clúster -- IAM no permite nombres de rol repetidos en la misma cuenta."
+  type        = string
+  default     = "labeks-aws-load-balancer-controller"
+}
+
 variable "oidc_provider_arn" {
   type = string
 }

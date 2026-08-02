@@ -33,3 +33,16 @@ module "ecr" {
   k8s_service_account_name = "jenkins-ecr-push"
   tags                     = var.tags
 }
+
+# El Service interno de Vault (vault-internal-lb) vive en ESTE clúster, y el
+# AWS Load Balancer Controller solo administra Services del clúster donde
+# corre -- el que instalamos en development no sirve aquí. Sin este, el
+# Service de Vault se queda "<pending>" para siempre (confirmado en vivo).
+module "alb_controller_irsa" {
+  source = "../../modules/aws-load-balancer-controller-irsa"
+
+  role_name         = "labeks-deployment-aws-load-balancer-controller"
+  oidc_provider_arn = module.eks.oidc_provider_arn
+  oidc_provider_url = module.eks.oidc_provider_url
+  tags              = var.tags
+}

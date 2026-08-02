@@ -41,3 +41,8 @@ output "ebs_csi_driver_role_arn" {
   description = "Pasar como controller.serviceAccount.annotations al instalar el chart aws-ebs-csi-driver."
   value       = aws_iam_role.ebs_csi_driver.arn
 }
+
+output "alb_controller_role_arn" {
+  description = "Pasar como serviceAccount.annotations al instalar eks/aws-load-balancer-controller en ESTE clúster."
+  value       = module.alb_controller_irsa.role_arn
+}

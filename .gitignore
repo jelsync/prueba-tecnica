@@ -43,3 +43,7 @@ Thumbs.db
 
 ### Material del enunciado (no es parte de la solución) ###
 Prueba Técnica DevOps 2026.pdf
+
+### Borradores/copias locales de trabajo (no versionar) ###
+*.local.md
+Captura de pantalla *.png

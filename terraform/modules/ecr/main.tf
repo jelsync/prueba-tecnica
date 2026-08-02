@@ -1,6 +1,10 @@
 resource "aws_ecr_repository" "this" {
   name                 = var.repository_name
   image_tag_mutability = "IMMUTABLE"
+  # Sin esto, "terraform destroy" falla si el pipeline ya subió alguna
+  # imagen: ECR no deja borrar un repo con contenido salvo que se fuerce.
+  # Este es un laboratorio de corta vida, no un registry de producción.
+  force_delete = true
 
   image_scanning_configuration {
     scan_on_push = true

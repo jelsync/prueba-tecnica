@@ -31,6 +31,13 @@ resource "aws_eks_cluster" "this" {
     endpoint_private_access = true
   }
 
+  # Sin esto, el default es CONFIG_MAP (legacy) y los EKS Access Entries
+  # (los que usa development-cluster para el rol de deploy de Jenkins) no se
+  # pueden crear -- encontrado en vivo al aplicar development-cluster.
+  access_config {
+    authentication_mode = "API_AND_CONFIG_MAP"
+  }
+
   tags = var.tags
 
   depends_on = [aws_iam_role_policy_attachment.cluster_policy]

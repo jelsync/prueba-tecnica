@@ -37,9 +37,15 @@ echo "==> Reutilizando la misma política de solo lectura que usa Jenkins"
 vault policy write microservice-read ../../../jenkins/vault-policy.hcl
 
 echo "==> Creando el role que liga la ServiceAccount 'microservice' a esa política"
+# audience=vault DEBE coincidir con el audiences del VaultAuth de VSO (ver
+# auth.yaml: audiences: [vault]). VSO pide un token acotado a la audiencia
+# "vault"; si el role no la declara, Vault hace el TokenReview sin audiencia
+# y la API rechaza el token ("invalid bearer token") -> 403 permission denied
+# en el login (confirmado en vivo aislando el TokenReview con y sin audiencia).
 vault write auth/kubernetes-development/role/development-microservice \
   bound_service_account_names=microservice \
   bound_service_account_namespaces=development \
+  audience=vault \
   policies=microservice-read \
   ttl=15m
 

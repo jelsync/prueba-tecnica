@@ -36,3 +36,8 @@ output "jenkins_deploy_role_arn" {
   description = "Anotar en k8s/deployment-cluster/jenkins/deploy-agent-serviceaccount.yaml (eks.amazonaws.com/role-arn)."
   value       = aws_iam_role.jenkins_deploy.arn
 }
+
+output "ebs_csi_driver_role_arn" {
+  description = "Pasar como controller.serviceAccount.annotations al instalar el chart aws-ebs-csi-driver."
+  value       = aws_iam_role.ebs_csi_driver.arn
+}

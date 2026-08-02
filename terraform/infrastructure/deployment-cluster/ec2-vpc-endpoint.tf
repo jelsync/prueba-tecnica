@@ -16,7 +16,7 @@ data "aws_eks_cluster" "development" {
 
 resource "aws_security_group" "ec2_vpc_endpoint" {
   name        = "labeks-ec2-vpc-endpoint"
-  description = "HTTPS desde los clústeres EKS del laboratorio hacia el VPC endpoint de EC2"
+  description = "HTTPS desde los clusteres EKS del laboratorio hacia el VPC endpoint de EC2"
   vpc_id      = var.existing_vpc_id
   tags        = var.tags
 }

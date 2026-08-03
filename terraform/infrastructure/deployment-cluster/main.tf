@@ -1,6 +1,3 @@
-# Reutiliza la VPC ya existente en la cuenta (no crea ni modifica nada de red):
-# los IDs reales viven en un *.auto.tfvars sin versionar, ver
-# environments/deployment/network.auto.tfvars.example.
 module "network" {
   source = "../../modules/existing-network"
 
@@ -34,10 +31,6 @@ module "ecr" {
   tags                     = var.tags
 }
 
-# El Service interno de Vault (vault-internal-lb) vive en ESTE clúster, y el
-# AWS Load Balancer Controller solo administra Services del clúster donde
-# corre -- el que instalamos en development no sirve aquí. Sin este, el
-# Service de Vault se queda "<pending>" para siempre (confirmado en vivo).
 module "alb_controller_irsa" {
   source = "../../modules/aws-load-balancer-controller-irsa"
 

@@ -1,6 +1,3 @@
-# Misma VPC existente que deployment-cluster (comparten red para que Jenkins
-# pueda llegar a la API de este clúster). IDs reales sin versionar, ver
-# environments/development/network.auto.tfvars.example.
 module "network" {
   source = "../../modules/existing-network"
 

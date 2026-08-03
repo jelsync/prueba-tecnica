@@ -20,8 +20,6 @@ variable "deployment_cluster_name" {
   default     = "labeks-deployment"
 }
 
-# Sin default a propósito: los IDs reales de la VPC/subredes existentes no se
-# versionan (ver .gitignore) y se pasan vía environments/development/network.auto.tfvars.
 variable "existing_vpc_id" {
   description = "VPC ya existente en la cuenta donde se despliega este clúster."
   type        = string

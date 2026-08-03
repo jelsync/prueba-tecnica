@@ -1,14 +1,4 @@
 #!/usr/bin/env bash
-# Configura el método de autenticación Kubernetes en Vault para que Jenkins
-# lea el secreto del microservicio sin ningún token de Vault hardcodeado.
-#
-# Se corre UNA SOLA VEZ, después de que Vault ya esté desplegado, inicializado
-# y unsealed (no antes: no hay Vault contra el cual escribir todavía). No se
-# ejecutó en esta sesión por lo mismo.
-#
-# Requiere: `vault login` ya hecho (token de admin, normalmente el root token
-# de la inicialización) contra VAULT_ADDR, y kubectl apuntando al clúster
-# deployment (kubectl config current-context).
 set -euo pipefail
 
 : "${VAULT_ADDR:?export VAULT_ADDR primero, ej. http://localhost:8200 si se hizo port-forward al Service de Vault}"
@@ -37,17 +27,6 @@ echo "==> Escribiendo la política de mínimo privilegio (vault-policy.hcl)"
 vault policy write jenkins-microservice ./vault-policy.hcl
 
 echo "==> Creando el role que liga la ServiceAccount de Jenkins a esa política"
-# bound_service_account_names=jenkins (la ServiceAccount del CONTROLLER, la
-# que crea el chart jenkins/jenkins por default) -- no la del pod agente que
-# corre el stage. El plugin hashicorp-vault-plugin resuelve el login contra
-# Vault en el JVM del controller (las credenciales de Jenkins se resuelven
-# ahi), asi que el JWT que Vault valida es el del pod "jenkins-0", sin
-# importar bajo que ServiceAccount corra el agente que invoca "withVault(...)".
-# Confirmado en vivo: con bound_service_account_names=jenkins-ecr-push (la
-# del agente) el login fallaba con "service account name not authorized";
-# probando el mismo login a mano con el token de jenkins-0 daba el mismo
-# error, y con el token del agente si pasaba -- ambos contra el role viejo,
-# lo que aislo que el login real ocurre desde el controller.
 vault write auth/kubernetes-jenkins/role/jenkins-microservice \
   bound_service_account_names=jenkins \
   bound_service_account_namespaces=jenkins \

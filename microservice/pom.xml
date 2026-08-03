@@ -49,10 +49,6 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <!-- Mockito/ByteBuddy necesitan auto-adjuntarse como agente al correr
-               en JDK 9+; sin esto los tests de Spring Boot fallan al arrancar
-               (ResetMocksTestExecutionListener usa Mockito internamente aunque
-               el test no use @MockBean). -->
           <argLine>-Djdk.attach.allowAttachSelf=true</argLine>
         </configuration>
       </plugin>

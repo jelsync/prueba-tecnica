@@ -24,10 +24,6 @@ public class MicroserviceController {
         this.environment = environment;
     }
 
-    /**
-     * Expone el valor de la variable de entorno que el pipeline de CI/CD
-     * inyecta a partir del secreto leído de Vault.
-     */
     @GetMapping("/api/env-secret")
     public Map<String, String> envSecret() {
         String value = environment.getProperty(vaultSecretEnvVarName);
@@ -36,11 +32,6 @@ public class MicroserviceController {
                 "value", value != null ? value : NOT_INJECTED_PLACEHOLDER);
     }
 
-    /**
-     * Simula una propiedad de configuración local (no viene de Vault):
-     * se lee de application.yml y puede sobreescribirse con la variable
-     * de entorno APP_CONFIG_MESSAGE.
-     */
     @GetMapping("/api/config-property")
     public Map<String, String> configProperty() {
         return Map.of(

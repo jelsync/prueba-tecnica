@@ -1,10 +1,7 @@
 resource "aws_ecr_repository" "this" {
   name                 = var.repository_name
   image_tag_mutability = "IMMUTABLE"
-  # Sin esto, "terraform destroy" falla si el pipeline ya subió alguna
-  # imagen: ECR no deja borrar un repo con contenido salvo que se fuerce.
-  # Este es un laboratorio de corta vida, no un registry de producción.
-  force_delete = true
+  force_delete         = true
 
   image_scanning_configuration {
     scan_on_push = true
@@ -31,9 +28,6 @@ resource "aws_ecr_lifecycle_policy" "this" {
   })
 }
 
-# IRSA: el ServiceAccount de k8s (usada por el pod agente de Jenkins que
-# construye/publica la imagen) puede asumir este rol sin ninguna access key
-# de AWS guardada en Jenkins.
 data "aws_iam_policy_document" "push_assume_role" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
@@ -65,7 +59,6 @@ resource "aws_iam_role" "push" {
 
 data "aws_iam_policy_document" "push_permissions" {
   statement {
-    # GetAuthorizationToken no admite scoping por recurso (siempre "*" en la API de ECR).
     actions   = ["ecr:GetAuthorizationToken"]
     resources = ["*"]
   }

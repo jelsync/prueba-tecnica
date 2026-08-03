@@ -1,7 +1,3 @@
-# Cómo se autentica VSO contra Vault: Kubernetes auth method, usando la
-# ServiceAccount "microservice" que ya existe (ver ../serviceaccount.yaml) —
-# no se crea una identidad nueva solo para esto. El mount y el role los deja
-# listos vault-k8s-auth-setup.sh en este mismo directorio.
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultAuth
 metadata:

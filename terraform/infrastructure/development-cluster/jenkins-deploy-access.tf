@@ -1,8 +1,3 @@
-# Le da al rol IRSA de Jenkins (creado en deployment-cluster) permiso real
-# dentro de la API de Kubernetes de ESTE clúster, acotado al namespace
-# "development" — no cluster-wide, no admin. El ARN se calcula con la misma
-# convención de nombre que usa deployment-cluster (labeks-jenkins-deploy),
-# así no hace falta pasarlo a mano entre stacks ni versionarlo.
 data "aws_caller_identity" "current" {}
 
 locals {

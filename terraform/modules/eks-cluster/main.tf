@@ -31,15 +31,6 @@ resource "aws_eks_cluster" "this" {
     endpoint_private_access = true
   }
 
-  # Sin esto, el default es CONFIG_MAP (legacy) y los EKS Access Entries
-  # (los que usa development-cluster para el rol de deploy de Jenkins) no se
-  # pueden crear -- encontrado en vivo al aplicar development-cluster.
-  #
-  # bootstrap_cluster_creator_admin_permissions se fija explícitamente en
-  # true porque así quedó ya en el clúster existente (default de AWS al
-  # crearlo) -- omitirlo hace que Terraform lo interprete como "cambiar a
-  # null", y ese campo específico SÍ fuerza a reemplazar el clúster entero
-  # (visto en un "terraform plan" real antes de aplicar, por suerte).
   access_config {
     authentication_mode                         = "API_AND_CONFIG_MAP"
     bootstrap_cluster_creator_admin_permissions = true
@@ -50,8 +41,6 @@ resource "aws_eks_cluster" "this" {
   depends_on = [aws_iam_role_policy_attachment.cluster_policy]
 }
 
-# OIDC provider: habilita IRSA, requerido por Vault Secrets Operator y el Vault CSI provider
-# para asumir roles de IAM sin credenciales estáticas.
 data "tls_certificate" "oidc" {
   url = aws_eks_cluster.this.identity[0].oidc[0].issuer
 }
@@ -96,14 +85,6 @@ resource "aws_iam_role_policy_attachment" "node_ecr_readonly" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
-# La AMI EKS-optimizada de Amazon Linux 2023 trae su snapshot raíz SIN
-# cifrar (confirmado con `aws ec2 describe-images`: "Encrypted": false). Al
-# lanzar la instancia, EC2 tiene que re-cifrarla sobre la marcha usando la
-# key de cifrado-por-defecto de la cuenta -- y esa key/flujo dio
-# "Client.InvalidKMSKey.InvalidState" de forma repetible (2 intentos, cada
-# uno con instancias nuevas). Se usa una key propia del laboratorio en vez
-# de depender de la de la cuenta, fijada explícitamente en un launch
-# template -- así no importa qué esté mal con la key por defecto.
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
@@ -175,9 +156,6 @@ resource "aws_kms_key_policy" "node_ebs" {
 resource "aws_launch_template" "node" {
   name_prefix = "${var.cluster_name}-node-"
 
-  # Sin image_id/user_data: EKS los completa automáticamente para el
-  # ami_type configurado en el node group (AL2023_x86_64_STANDARD). Solo se
-  # sobreescribe el volumen raíz para forzar nuestra propia KMS key.
   block_device_mappings {
     device_name = "/dev/xvda"
 
@@ -200,12 +178,6 @@ resource "aws_launch_template" "node" {
     tags          = var.tags
   }
 
-  # hop_limit=2: sin esto (default 1), procesos dentro de un pod no llegan
-  # al IMDS del nodo -- confirmado en vivo con el AWS Load Balancer
-  # Controller ("context deadline exceeded" pidiendo la metadata). No se
-  # reemplazaron los nodos ya corrindo para aplicar esto (se evitó el
-  # problema con --set vpcId= en el chart en su lugar); nodos nuevos que se
-  # creen de aquí en adelante ya salen bien.
   metadata_options {
     http_tokens                 = "required"
     http_put_response_hop_limit = 2

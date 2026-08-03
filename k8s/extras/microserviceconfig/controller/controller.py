@@ -1,13 +1,3 @@
-"""Controlador mínimo para el CRD MicroserviceConfig.
-
-No reconcilia ningún otro recurso -- el enunciado pide (opcionalmente) un
-controlador que "procese" el CRD, no que mute un Deployment. Al ver un
-MicroserviceConfig nuevo o modificado, registra sus campos y actualiza su
-.status con la marca de tiempo del último procesamiento. Suficiente para
-demostrar el mecanismo sin inventar comportamiento que el laboratorio no
-pidió.
-"""
-
 import datetime
 import logging
 
@@ -37,11 +27,6 @@ def process(api, obj):
     namespace = metadata["namespace"]
 
     if status.get("observedGeneration") == generation:
-        # Ya se proceso esta version del spec. "generation" solo cambia con
-        # el spec, no con el subrecurso status -- sin este corte, el propio
-        # patch de status dispara otro evento MODIFIED y el controlador
-        # entra en loop infinito contra si mismo (bug real que se encontro
-        # probando esto contra un clúster kind de verdad).
         return
 
     log.info(

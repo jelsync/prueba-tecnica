@@ -1,22 +1,7 @@
-# Valores para el chart oficial jenkins/jenkins (5.9.45). Instalación (una
-# vez el clúster deployment exista):
-#   helm repo add jenkins https://charts.jenkins.io
-#   helm install jenkins jenkins/jenkins -n jenkins -f values.yaml
-#
-# rbac.create=true y serviceAccount.create=true (defaults del chart): crea
-# su propio ServiceAccount + Role/RoleBinding *namespaced* (no cluster-wide)
-# para que el plugin de Kubernetes pueda crear/borrar pods de agentes dentro
-# del namespace "jenkins" — no hace falta escribir ese RBAC a mano.
-
 controller:
   additionalPlugins:
-    # Lee secretos de Vault e inyecta variables de entorno en el pipeline.
     - hashicorp-vault-plugin
-    # Pasos "docker.build" / "docker.push" en el Jenkinsfile.
     - docker-workflow
-    # timestamps() en el Jenkinsfile — verificado con el linter real de
-    # Jenkins (pipeline-model-converter/validate): sin este plugin la
-    # opción no existe y el pipeline ni siquiera valida.
     - timestamper
 
   resources:
@@ -29,10 +14,6 @@ controller:
 
   JCasC:
     configScripts:
-      # Credencial "Vault Kubernetes" declarada como código, no un paso manual
-      # en la UI. El Jenkinsfile la referencia por vaultCredentialId. Campos
-      # (id/description/role/mountPath) verificados contra el código fuente
-      # de VaultKubernetesCredential.java del plugin, no adivinados.
       vault-credentials: |
         credentials:
           system:
@@ -50,8 +31,6 @@ persistence:
   size: 8Gi
 
 agent:
-  # Agentes efímeros (un pod por build) vía el plugin de Kubernetes — nada
-  # de un agente fijo de larga duración.
   enabled: true
   resources:
     requests:

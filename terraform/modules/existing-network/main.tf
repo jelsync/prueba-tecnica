@@ -1,7 +1,3 @@
-# Este módulo NUNCA crea, modifica ni importa recursos de red: solo los lee vía
-# data sources para que eks-cluster sepa dónde desplegarse. Se usa en cuentas de
-# AWS donde ya existe otra infraestructura que no se debe tocar — la VPC, sus
-# subredes, route tables e Internet Gateway quedan exactamente como están.
 data "aws_vpc" "this" {
   id = var.vpc_id
 }

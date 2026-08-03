@@ -1,7 +1,3 @@
-# Rol IRSA para el AWS Load Balancer Controller del clúster development —
-# necesario porque el Service del microservicio (y el de Vault) fijan sus
-# subredes por anotación en vez de por tags (ver k8s/*/service*.yaml); el
-# proveedor in-tree legacy de EKS no soporta eso, hace falta este controller.
 data "aws_iam_policy_document" "assume_role" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
@@ -31,9 +27,6 @@ resource "aws_iam_role" "this" {
   tags               = var.tags
 }
 
-# Política oficial del proyecto (docs/install/iam_policy.json en el repo de
-# kubernetes-sigs/aws-load-balancer-controller), descargada tal cual — no
-# transcrita de memoria.
 resource "aws_iam_role_policy" "this" {
   name   = "aws-load-balancer-controller"
   role   = aws_iam_role.this.id

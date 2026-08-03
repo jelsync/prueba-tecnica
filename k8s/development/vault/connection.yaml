@@ -1,16 +1,8 @@
-# Vault Secrets Operator (VSO): a qué Vault conectarse. Corre en el clúster
-# development pero Vault vive en el clúster deployment — por eso apunta a la
-# IP/DNS del Service LoadBalancer interno (ver
-# k8s/deployment-cluster/vault/service-internal-lb.yaml), no a un nombre
-# ClusterIP local que no sería alcanzable entre clústeres distintos.
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultConnection
 metadata:
   name: vault-connection
   namespace: development
 spec:
-  # Reemplazar con el DNS/IP real del NLB interno una vez desplegado (ver
-  # el output "vault-internal-lb" del Service). No es un dato sensible per
-  # se, pero no existe hasta que Vault esté corriendo de verdad.
   address: "http://<VAULT_INTERNAL_LB_ADDRESS>:8200"
-  skipTLSVerify: true # TLS deshabilitado a propósito en el listener (ver vault/values.yaml); mejora pendiente fuera del alcance de este laboratorio.
+  skipTLSVerify: true

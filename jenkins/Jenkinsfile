@@ -1,16 +1,3 @@
-// Pipeline del laboratorio: lee el secreto de Vault, construye y publica la
-// imagen del microservicio en ECR, y la despliega en el clúster development
-// — con rollback automático si el despliegue falla.
-//
-// Placeholders a resolver una vez el `terraform apply` real esté hecho:
-//   ECR_REPOSITORY           -> salida "ecr_repository_url" de deployment-cluster
-//   DEVELOPMENT_CLUSTER_NAME -> debe coincidir con "cluster_name" en
-//                                environments/development/terraform.tfvars
-//
-// Credencial "vault-k8s-auth": declarada como código en
-// k8s/deployment-cluster/jenkins/values.yaml (JCasC), no un paso manual.
-// ServiceAccounts jenkins-ecr-push / jenkins-deploy: IRSA, definidas en
-// k8s/deployment-cluster/jenkins/*-agent-serviceaccount.yaml.
 pipeline {
     agent none
 
@@ -19,9 +6,6 @@ pipeline {
         disableConcurrentBuilds()
     }
 
-    // ECR_REPOSITORY como parametro (no hardcodeado): la URI real incluye el
-    // ID de la cuenta de AWS, que no se puede commitear (ver terraform/README.md).
-    // Se sobrescribe con "Build with Parameters" al lanzar el build, nunca en git.
     parameters {
         string(name: 'ECR_REPOSITORY', defaultValue: '<ECR_REPOSITORY_URI>', description: 'Salida ecr_repository_url del stack de Terraform de deployment-cluster')
     }
@@ -37,12 +21,6 @@ pipeline {
         stage('Leer secreto de Vault, build y push a ECR') {
             agent {
                 kubernetes {
-                    // Sin contenedor "docker" ni hostPath a /var/run/docker.sock: los
-                    // nodos de este EKS corren containerd, no dockerd (confirmado en
-                    // vivo con "kubectl get nodes ... containerRuntimeVersion" -- desde
-                    // EKS 1.24 no hay daemon Docker en el host, montar ese socket nunca
-                    // funciona). Kaniko construye y publica la imagen sin necesitar
-                    // ningun daemon ni privilegios elevados en el pod.
                     yaml '''
                         apiVersion: v1
                         kind: Pod
@@ -85,17 +63,9 @@ pipeline {
                     ]
 
                     withVault([configuration: vaultConfig, vaultSecrets: vaultSecrets]) {
-                        // El secreto ya está disponible como VAULT_SECRET *antes* de
-                        // este paso, tal como pide el enunciado. No se hornea en la
-                        // imagen — el pod en development lo recibe en runtime vía
-                        // VSO (ver k8s/development/vault/); esto solo demuestra que
-                        // Jenkins lo leyó de forma segura antes de construir.
                         sh 'echo "Secreto leido de Vault, disponible como VAULT_SECRET antes del build"'
                     }
 
-                    // aws ecr get-login-password + un config.json a mano (no "docker
-                    // login": no hay contenedor docker) -- Kaniko lee credenciales de
-                    // registry del mismo formato ~/.docker/config.json que docker.
                     container('awscli') {
                         sh '''
                             set -euo pipefail
@@ -130,9 +100,6 @@ pipeline {
                                 - name: kubeconfig
                                   mountPath: /kubeconfig
                             - name: kubectl
-                              # bitnami/kubectl:1.31 ya no existe (Bitnami
-                              # reorganizó sus tags) — verificado con
-                              # docker pull antes de usar esta alternativa.
                               image: alpine/k8s:1.31.0
                               command: ["cat"]
                               tty: true

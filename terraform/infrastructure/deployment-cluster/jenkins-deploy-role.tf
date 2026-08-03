@@ -1,13 +1,6 @@
-# Rol IRSA para el pod agente de Jenkins que hace el deploy al clúster
-# development — separado del rol de push a ECR (module.ecr) por mínimo
-# privilegio: este no toca ECR, el otro no toca la API de Kubernetes de otro
-# clúster. El acceso real dentro de k8s (qué puede hacer una vez
-# autenticado) lo define el Access Entry en development-cluster, no este rol.
 data "aws_caller_identity" "current" {}
 
 locals {
-  # Mismo patrón que el ARN del cluster: se calcula, nunca se pega a mano ni
-  # se versiona el account id en un tfvars.
   development_cluster_arn = "arn:aws:eks:${var.aws_region}:${data.aws_caller_identity.current.account_id}:cluster/${var.development_cluster_name}"
 }
 

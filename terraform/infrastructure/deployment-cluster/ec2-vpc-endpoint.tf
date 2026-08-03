@@ -1,15 +1,3 @@
-# La VPC compartida no tiene un VPC endpoint para "ec2" (solo "ec2messages",
-# que es para SSM, no la API principal de EC2) -- confirmado en vivo: el EBS
-# CSI driver crea el volumen pero el DescribeVolumes inmediato despues no lo
-# encuentra, de forma repetida con volumenes distintos cada vez. Las
-# llamadas a la API de EC2 salen por el Transit Gateway compartido en vez
-# de la red privada de AWS. Se crea un VPC endpoint nuevo (no se toca
-# ninguno existente) con su propio security group.
-#
-# Se deja abierto también para el clúster development: el AWS Load Balancer
-# Controller que corre ahí también llama a la API de EC2
-# (DescribeSubnets/DescribeSecurityGroups/etc.) y muy probablemente
-# tropezaría con lo mismo al crear el primer Load Balancer real.
 data "aws_eks_cluster" "development" {
   name = var.development_cluster_name
 }

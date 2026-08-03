@@ -1,24 +1,4 @@
 #!/usr/bin/env bash
-# Configura, de forma robusta y usando SOLO kubectl (no requiere la CLI de
-# vault en tu maquina), el auth Kubernetes cross-cluster que necesita el
-# Vault Secrets Operator (VSO), y deja la cadena VSO lista para sincronizar.
-#
-# Automatiza los dos pasos que historicamente daban problemas al re-desplegar:
-#   1. Poner el DNS ACTUAL del NLB interno de Vault en connection.yaml
-#      (ese DNS cambia cada vez que se recrea el Service de Vault).
-#   2. Cargar el reviewer JWT + CA del cluster development dentro del pod de
-#      Vault sin que se corrompa (kubectl exec -i no entrega la ultima linea
-#      si no termina en salto de linea -> se fuerza el flush y se limpia).
-#
-# Requisitos: kubectl con dos contextos (deployment y development), Vault ya
-# inicializado y unsealed. El root token se pasa por variable de entorno para
-# no dejarlo en el historial ni imprimirlo:
-#
-#   export VAULT_ROOT_TOKEN=<root-token>      # se usa, nunca se imprime
-#   ./setup-cross-cluster-auth.sh
-#
-# Contextos configurables (por si tus --alias son otros):
-#   DEPLOY_CTX (default: deployment)   DEV_CTX (default: development)
 set -euo pipefail
 
 DEPLOY_CTX="${DEPLOY_CTX:-deployment}"
@@ -41,8 +21,6 @@ DEV_HOST=$(kubectl --context "$DEV_CTX" config view --minify -o jsonpath='{.clus
 echo "    API de development: $DEV_HOST"
 
 echo "==> 3/5 Cargando reviewer JWT y CA dentro del pod vault-0 (metodo a prueba de flush)"
-# El '; echo' fuerza el flush del stdin (sin un salto final, kubectl exec -i
-# no entrega la ultima linea); 'tr -d' quita ese salto para no corromper el JWT.
 { kubectl --context "$DEV_CTX" -n development get secret vault-token-reviewer-token \
     -o jsonpath='{.data.token}' | base64 -d; echo; } \
   | kubectl --context "$DEPLOY_CTX" -n vault exec -i vault-0 -c vault -- sh -c "tr -d '\n\r' > /tmp/reviewer.jwt"

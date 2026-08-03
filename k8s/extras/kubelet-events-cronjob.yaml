@@ -1,7 +1,3 @@
-# Extra opcional del laboratorio: audita periódicamente los eventos que
-# origina el kubelet (reinicios, fallas de scheduling, image pull errors,
-# OOMKilled, etc.) en todos los namespaces. Aplicable a cualquiera de los
-# dos clústeres (no depende de nada específico de development ni deployment).
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -13,9 +9,6 @@ metadata:
   name: kubelet-events-auditor
   namespace: platform-audit
 ---
-# Solo lectura de "events" (core), cluster-wide porque los eventos del
-# kubelet aparecen en el namespace del pod/node afectado, no en uno fijo.
-# Nada de write, nada de otros recursos.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -44,7 +37,7 @@ metadata:
   name: kubelet-events-audit
   namespace: platform-audit
 spec:
-  schedule: "*/10 * * * *" # cada 10 minutos
+  schedule: "*/10 * * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -58,9 +51,6 @@ spec:
           restartPolicy: Never
           containers:
             - name: audit
-              # bitnami/kubectl:1.31 ya no existe (Bitnami reorganizó sus
-              # tags) — probado con docker pull antes de usarlo; alpine/k8s
-              # sí trae kubectl + shell + wget, verificado igual.
               image: alpine/k8s:1.31.0
               command: ["/bin/sh", "-c"]
               args:
@@ -71,10 +61,6 @@ spec:
                   echo "[$(date -u +%FT%TZ)] eventos del kubelet encontrados: $COUNT"
                   echo "$EVENTS"
 
-                  # Alerta opcional a Slack/Discord si hay eventos y el webhook
-                  # esta configurado (ver Secret slack-webhook, no incluido en
-                  # este repo). Sin el Secret, el CronJob igual funciona: el
-                  # log de arriba ya sirve como auditoria (kubectl logs).
                   if [ "$COUNT" -gt 0 ] && [ -n "${SLACK_WEBHOOK_URL:-}" ]; then
                     wget -q -O- --header="Content-Type: application/json" \
                       --post-data="{\"text\":\"[labeks] $COUNT eventos del kubelet en los ultimos 10 minutos\"}" \

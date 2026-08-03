@@ -1,10 +1,3 @@
-# Autenticación Kubernetes cross-cluster: Vault corre en el clúster
-# deployment, pero el mount "kubernetes-development" valida tokens emitidos
-# por ESTE clúster (development). Para autenticar la llamada TokenReview
-# contra la API de development, Vault necesita un JWT que sea válido AQUÍ y
-# que pueda crear TokenReviews (ClusterRole system:auth-delegator). Sin esto,
-# Vault usa su token local (del clúster deployment) y development lo rechaza
-# con "403 permission denied" al hacer login VSO (confirmado en vivo).
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -24,10 +17,6 @@ subjects:
     name: vault-token-reviewer
     namespace: development
 ---
-# Token de larga duración (no expira) para esa ServiceAccount. Vault lo
-# guarda como token_reviewer_jwt en la config del mount. Un token proyectado
-# normal expira; para un reviewer estático se usa un Secret de este tipo, que
-# el controlador de tokens del clúster puebla con el JWT y el ca.crt.
 apiVersion: v1
 kind: Secret
 metadata:
